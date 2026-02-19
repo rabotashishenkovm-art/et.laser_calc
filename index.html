@@ -1,0 +1,1092 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ET.LASER — прототип калькулятора удаления тату</title>
+  <meta name="description" content="Прототип калькулятора: Москва/СПб, тату/татуаж, цена за 1 сеанс + оценка количества сеансов и лид на консультацию." />
+  <style>
+    :root{
+      --bg:#0b0e14;
+      --card:#121827;
+      --text:#eef2ff;
+      --muted:#a6b0cf;
+      --line:rgba(255,255,255,.08);
+      --accent:#7c3aed;
+      --accent2:#22c55e;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --radius:18px;
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background: radial-gradient(1000px 500px at 15% 10%, rgba(124,58,237,.25), transparent 50%),
+                  radial-gradient(800px 450px at 85% 20%, rgba(34,197,94,.18), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans";
+      letter-spacing: .1px;
+    }
+    a{color:inherit}
+    .wrap{max-width:1120px;margin:0 auto;padding:28px 18px 60px}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:6px 0 22px;}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:42px;height:42px;border-radius:14px;background: linear-gradient(135deg, rgba(124,58,237,.9), rgba(34,197,94,.7));box-shadow: 0 10px 30px rgba(124,58,237,.25);}
+    h1{margin:0;font-size:18px}
+    .sub{color:var(--muted);font-size:12px;margin-top:2px}
+    .pill{padding:8px 10px;border:1px solid var(--line);border-radius:999px;background: rgba(255,255,255,.03);color:var(--muted);font-size:12px}
+
+    .grid{display:grid;grid-template-columns: 1.15fr .85fr;gap:18px;align-items:start}
+    @media (max-width: 920px){.grid{grid-template-columns:1fr}}
+
+    .card{background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));border:1px solid var(--line);border-radius: var(--radius);box-shadow: var(--shadow);overflow:hidden;}
+    .card .hd{padding:16px 16px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom: 1px solid var(--line);background: rgba(0,0,0,.12);}
+    .card .hd h2{margin:0;font-size:14px}
+    .card .hd p{margin:6px 0 0;color:var(--muted);font-size:12px;max-width:70ch}
+    .card .bd{padding:16px}
+
+    .row{display:grid;grid-template-columns: 1fr 1fr;gap:12px}
+    @media (max-width: 520px){ .row{grid-template-columns:1fr} }
+
+    label{display:block;color:var(--muted);font-size:12px;margin:0 0 6px}
+    select, input[type="number"], input[type="text"], input[type="tel"], textarea{
+      width:100%;background: rgba(255,255,255,.03);border:1px solid var(--line);color:var(--text);
+      border-radius: 12px;padding:10px 12px;outline:none;
+    }
+    textarea{min-height:88px;resize:vertical}
+    input[type="range"]{width:100%}
+
+    .field{border:1px solid var(--line);border-radius: 14px;padding:12px;background: rgba(0,0,0,.14);}
+    .field .top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+    .val{font-variant-numeric: tabular-nums; color:var(--text); font-weight:600}
+    .hint{color:var(--muted);font-size:11px;margin-top:6px}
+
+    .btns{display:flex;gap:10px;flex-wrap:wrap}
+    button{border:1px solid var(--line);background: rgba(255,255,255,.03);color:var(--text);padding:10px 12px;border-radius: 12px;cursor:pointer;transition: transform .08s ease, background .15s ease;}
+    button:hover{background: rgba(255,255,255,.06)}
+    button:active{transform: scale(.98)}
+    .primary{background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(34,197,94,.75));border-color: rgba(255,255,255,.18);}
+    .danger{background: rgba(239,68,68,.12);border-color: rgba(239,68,68,.35);}
+
+    .kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width: 520px){ .kpi{grid-template-columns:1fr} }
+    .kpi .box{border:1px solid var(--line);background: rgba(0,0,0,.14);border-radius: 14px;padding:12px;}
+    .kpi .box .t{color:var(--muted);font-size:12px}
+    .kpi .box .n{font-size:18px;font-weight:800;margin-top:6px;font-variant-numeric: tabular-nums}
+    .kpi .box .s{color:var(--muted);font-size:11px;margin-top:4px}
+
+    table{width:100%;border-collapse:collapse}
+    td, th{border-bottom:1px solid var(--line);padding:10px 8px;font-size:12px}
+    th{color:var(--muted);text-align:left;font-weight:600}
+    td:last-child, th:last-child{text-align:right;font-variant-numeric: tabular-nums}
+
+    .note{padding:12px 14px;border-radius:14px;border:1px solid var(--line);background: rgba(255,255,255,.03); color:var(--muted); font-size:12px}
+    .warn{border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.08); color: #f8e8c1;}
+
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;border:1px solid var(--line);background: rgba(0,0,0,.18); color:var(--muted); font-size:12px}
+    .dot{width:8px;height:8px;border-radius:999px;background: var(--accent2)}
+
+    details{border:1px solid var(--line);border-radius:14px;background: rgba(0,0,0,.14);}
+    summary{cursor:pointer;list-style:none;padding:12px 12px;color:var(--text);font-weight:700;}
+    summary::-webkit-details-marker{display:none}
+    details .inner{padding:0 12px 12px}
+
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+
+    /* Segmented switch */
+    .seg{display:flex;border:1px solid var(--line);border-radius:14px;overflow:hidden;background: rgba(255,255,255,.03)}
+    .seg button{flex:1;border:0;border-right:1px solid var(--line);border-radius:0;background: transparent;padding:10px 12px;color:var(--muted);font-weight:700}
+    .seg button:last-child{border-right:0}
+    .seg button[aria-pressed="true"]{color:var(--text);background: rgba(124,58,237,.22)}
+
+    .chk{display:flex;gap:10px;align-items:flex-start}
+    .chk input{margin-top:3px}
+
+    footer{margin-top:14px;color:var(--muted);font-size:11px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>ET.LASER — прототип калькулятора удаления</h1>
+          <div class="sub">Москва/СПб • тату/татуаж • цена за 1 сеанс + оценка курса + лид на консультацию</div>
+        </div>
+      </div>
+      <div class="pill">Расчёт ориентировочный • точная стоимость — после консультации врача</div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: inputs -->
+      <section class="card">
+        <div class="hd">
+          <div>
+            <h2>Параметры расчёта</h2>
+            <p>
+              Цены в прототипе собраны из открытых страниц ET.LASER: Москва (/price), СПб (/spb/price),
+              а также промо‑условия на первый сеанс и расширенные размеры — со страницы консультации (/cons_remover).
+            </p>
+          </div>
+          <span class="badge"><span class="dot"></span><span id="statusText">Готов к расчёту</span></span>
+        </div>
+        <div class="bd">
+
+          <div class="row">
+            <div class="field">
+              <label>Город</label>
+              <div class="seg" role="group" aria-label="Город">
+                <button type="button" id="cityMsk" aria-pressed="true">Москва</button>
+                <button type="button" id="citySpb" aria-pressed="false">Санкт‑Петербург</button>
+              </div>
+              <input type="hidden" id="city" value="msk" />
+              <div class="hint">Переключатель влияет на таблицу цен и контакты.</div>
+            </div>
+
+            <div class="field">
+              <label for="item">Что удаляем</label>
+              <select id="item">
+                <option value="tattoo" selected>Татуировка</option>
+                <option value="tattooage_brows">Татуаж — брови/губы/прочее</option>
+                <option value="tattooage_eyelids">Татуаж — веки (стрелки)</option>
+              </select>
+              <div class="hint">Как в калькуляторе ET.LASER: отдельные пункты «Татуаж брови / Татуаж стрелки».</div>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <div class="row">
+            <div class="field">
+              <label for="size">Размер / категория</label>
+              <select id="size">
+                <option value="4">до 2×2 см (4 см²)</option>
+                <option value="15">до 5×3 см (15 см²)</option>
+                <option value="25" selected>до 5×5 см (25 см²)</option>
+                <option value="50">до 10×5 см (50 см²)</option>
+                <option value="100">до 10×10 см (100 см²)</option>
+                <option value="125">до 10×12.5 см (125 см²)</option>
+                <option value="150">до 10×15 см (150 см²)</option>
+                <option value="200">до 20×10 см (200 см²)</option>
+                <option value="300">до 20×15 см (300 см², A5)</option>
+                <option value="350">до 20×17.5 см (350 см²)</option>
+                <option value="400">до 20×20 см (400 см²)</option>
+                <option value="500">до 20×25 см (500 см²)</option>
+                <option value="600">до 20×30 см (600 см², A4)</option>
+                <option value="custom">Свой размер (см²)</option>
+              </select>
+              <div class="hint" id="sizeHint">Если выбрали «Свой размер» — возьмём ближайший больший «до … см²».</div>
+            </div>
+
+            <div class="field" id="areaField">
+              <label for="area">Площадь (см²)</label>
+              <input id="area" type="number" min="1" max="800" step="1" value="25" />
+              <div class="hint">Актуально только при выборе «Свой размер».</div>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <div class="row">
+            <div class="field" id="laserField">
+              <label for="laser">Тип лазера</label>
+              <select id="laser">
+                <option value="lutronic" selected>Lutronic Spectra XT</option>
+                <option value="picosure">PicoSure (премиум)</option>
+              </select>
+              <div class="hint">В Москве на сайте отдельно показаны цены PicoSure и Lutronic на малые размеры.</div>
+            </div>
+
+            <div class="field" id="promoField">
+              <div class="chk">
+                <input id="promoFirst" type="checkbox" />
+                <div>
+                  <label for="promoFirst" style="margin:0">Акция на 1‑й сеанс</label>
+                  <div class="hint" style="margin-top:4px">
+                    Включает промо‑цену «для новых клиентов» (в прототипе — по странице /cons_remover).
+                    На курс может не распространяться.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <div class="row">
+            <div class="field">
+              <label for="package">Количество процедур</label>
+              <select id="package">
+                <option value="single" selected>Разовая процедура</option>
+                <option value="pack3">Курс 3 процедуры</option>
+                <option value="pack18">Курс 18 процедур</option>
+              </select>
+              <div class="hint">В проде логика курса/скидок должна быть строго по бизнес‑правилам клиники.</div>
+            </div>
+
+            <div class="field">
+              <label for="extraDiscount">Доп. скидка / акция (%)</label>
+              <input id="extraDiscount" type="number" min="0" max="60" step="1" value="0" />
+              <div class="hint">Если нужно смоделировать «выгоду до 50%» или индивидуальную скидку.</div>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <details>
+            <summary>Оценка количества сеансов (опционально)</summary>
+            <div class="inner">
+              <div class="row">
+                <div class="field">
+                  <label for="color">Цвет пигмента</label>
+                  <select id="color">
+                    <option value="1.00" selected>Ч/К (чёрный/тёмный)</option>
+                    <option value="1.10">Ч/К + С/З/Ф (синий/зелёный/фиолетовый)</option>
+                    <option value="1.20">С/З/Ф (цветной «сложный»)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="density">Плотность пигмента</label>
+                  <select id="density">
+                    <option value="0.90">Мало / лёгкая тень</option>
+                    <option value="1.00" selected>Средне / умеренное</option>
+                    <option value="1.15">Плотно / заливка</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="height:12px"></div>
+
+              <div class="row">
+                <div class="field">
+                  <label for="layering">Наслоение (cover‑up)</label>
+                  <select id="layering">
+                    <option value="1.00" selected>Нет</option>
+                    <option value="1.25">Есть перекрытие / 2+ слоя</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="skin">Фототип по Фитцпатрику</label>
+                  <select id="skin">
+                    <option value="1.00" selected>I–II</option>
+                    <option value="1.05">III</option>
+                    <option value="1.15">IV–V</option>
+                    <option value="1.20">VI</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="height:12px"></div>
+
+              <div class="row">
+                <div class="field">
+                  <label for="zone">Зона</label>
+                  <select id="zone">
+                    <option value="1.00" selected>Торс / плечи</option>
+                    <option value="1.08">Предплечья / голени</option>
+                    <option value="1.15">Таз / бёдра</option>
+                    <option value="1.22">Кисти / стопы</option>
+                    <option value="1.28">Голова / шея / лицо</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="age">Возраст тату</label>
+                  <select id="age">
+                    <option value="1.15" selected>до 1 года</option>
+                    <option value="1.07">1–3 года</option>
+                    <option value="1.00">3–10 лет</option>
+                    <option value="0.90">10+ лет</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="height:12px"></div>
+
+              <div class="row">
+                <div class="field">
+                  <label for="scars">Состояние кожи (шрамы/рубцы)</label>
+                  <select id="scars">
+                    <option value="1.00" selected>Нет</option>
+                    <option value="1.10">Есть рубцы/фиброз</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <div class="top">
+                    <label for="goal">Цель</label>
+                    <span class="val" id="goalText">Максимально удалить</span>
+                  </div>
+                  <input id="goal" type="range" min="0" max="2" step="1" value="2" />
+                  <div class="hint">0 — осветлить под cover‑up • 1 — максимально осветлить • 2 — максимально удалить</div>
+                </div>
+              </div>
+
+              <div class="note warn" id="tattooageSessionsNote" style="margin-top:12px;display:none">
+                Для татуажа площадь условная, поэтому оценка сеансов — грубая. В проде лучше отдельная модель/правила для татуажа.
+              </div>
+            </div>
+          </details>
+
+          <div style="height:14px"></div>
+
+          <div class="btns">
+            <button class="primary" id="copyLink">Скопировать ссылку с параметрами</button>
+            <button id="reset" class="danger">Сбросить</button>
+          </div>
+
+          <footer>
+            <div class="note">
+              <strong>Важно:</strong> часть размеров/цен на сайте ET.LASER выдаётся через форму «получить полный прайс‑лист».
+              В прототипе для этих случаев показывается «уточним на консультации».
+            </div>
+          </footer>
+        </div>
+      </section>
+
+      <!-- RIGHT: result + lead -->
+      <aside class="card">
+        <div class="hd">
+          <div>
+            <h2>Результат и заявка</h2>
+            <p>Показываем цену за 1 сеанс, цену выбранного формата и оценку полной стоимости курса.</p>
+          </div>
+          <span class="pill mono" id="complexityBadge">Complexity × 1.00</span>
+        </div>
+        <div class="bd">
+
+          <div class="kpi">
+            <div class="box">
+              <div class="t">Цена за 1 сеанс</div>
+              <div class="n" id="perSession">—</div>
+              <div class="s" id="perSessionNote">По прайсу / оценке</div>
+            </div>
+            <div class="box">
+              <div class="t">Стоимость выбранного формата</div>
+              <div class="n" id="packageTotal">—</div>
+              <div class="s" id="packageNote">1 / 3 / 18 процедур</div>
+            </div>
+            <div class="box">
+              <div class="t">Оценка сеансов</div>
+              <div class="n" id="sessions">—</div>
+              <div class="s">Диапазон (мин–макс)</div>
+            </div>
+            <div class="box">
+              <div class="t">Оценка полной стоимости</div>
+              <div class="n" id="total">—</div>
+              <div class="s" id="totalNote">С учётом оценки сеансов</div>
+            </div>
+          </div>
+
+          <div style="height:14px"></div>
+
+          <div id="warnBox" class="note warn" style="display:none"></div>
+
+          <div style="height:14px"></div>
+
+          <table>
+            <thead>
+              <tr><th>Параметр</th><th>Значение</th></tr>
+            </thead>
+            <tbody id="breakdown"></tbody>
+          </table>
+
+          <div style="height:14px"></div>
+
+          <div class="note">
+            <strong>Дисклеймер:</strong> расчёт не является публичной офертой. Медицинские противопоказания и индивидуальные
+            особенности не учитываются. Точную стоимость/количество процедур определяет врач на консультации.
+          </div>
+
+          <div style="height:14px"></div>
+
+          <section class="card" style="box-shadow:none">
+            <div class="hd" style="border-radius:14px">
+              <div>
+                <h2>Лид на консультацию (как на сайте)</h2>
+                <p>Сформируем сообщение с расчётом и откроем WhatsApp/Telegram или письмо на email.</p>
+              </div>
+              <span class="badge"><span class="dot"></span><span class="mono" id="leadTarget">WhatsApp</span></span>
+            </div>
+            <div class="bd">
+              <div class="row">
+                <div class="field">
+                  <label for="leadName">Имя (опционально)</label>
+                  <input id="leadName" type="text" placeholder="Имя" />
+                </div>
+                <div class="field">
+                  <label for="leadPhone">Телефон</label>
+                  <input id="leadPhone" type="tel" placeholder="+7 ___ ___‑__‑__" />
+                  <div class="hint">В проде: маска/валидация + согласие ПДн.</div>
+                </div>
+              </div>
+
+              <div style="height:12px"></div>
+
+              <div class="row">
+                <div class="field">
+                  <label for="leadChannel">Куда отправить</label>
+                  <select id="leadChannel">
+                    <option value="wa" selected>WhatsApp</option>
+                    <option value="tg">Telegram</option>
+                    <option value="mail">Email</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="leadPhoto">Фото тату (опционально)</label>
+                  <input id="leadPhoto" type="file" accept="image/*" />
+                  <div class="hint">В прототипе фото не отправляется автоматически — только пометка в сообщении.</div>
+                </div>
+              </div>
+
+              <div style="height:12px"></div>
+
+              <div class="field">
+                <label for="leadComment">Комментарий (опционально)</label>
+                <textarea id="leadComment" placeholder="Например: где находится тату, сколько лет, какие цвета, был ли cover‑up..."></textarea>
+              </div>
+
+              <div style="height:12px"></div>
+
+              <div class="btns">
+                <button class="primary" id="sendLead">Получить консультацию</button>
+                <button id="copyText">Скопировать текст</button>
+                <button id="cta">Открыть сайт ET.LASER</button>
+              </div>
+
+              <div class="note" id="leadNote" style="margin-top:12px;display:none"></div>
+            </div>
+          </section>
+
+          <div style="height:14px"></div>
+
+          <div class="btns">
+            <button id="toggleModel">Показать/скрыть формулы</button>
+          </div>
+
+          <div id="modelBox" class="note" style="margin-top:12px; display:none">
+            <div><strong>Формулы (прототип):</strong></div>
+            <div class="mono" style="margin-top:8px">
+              price_per_session = price_table(city,item,laser,size) × (1 - extra_discount)<br/>
+              package_total = (price_per_session × (count-1)) + (promo_first ? promo_price : price_per_session)<br/>
+              sessions_base = 2 + sqrt(area)/3.8<br/>
+              sessions = clamp(2..18, ceil(sessions_base × complexity × goal)) (показываем min–max)<br/>
+              total_estimate = price_per_session × sessions_range (если promo_first — учитываем его для первого сеанса)
+            </div>
+          </div>
+
+        </div>
+      </aside>
+    </div>
+  </div>
+
+<script>
+  // ---------------------------------------------------------
+  // Data sources (public pages)
+  // - Moscow base prices for small sizes by laser: /price
+  // - SPb base prices (small sizes): /spb/price
+  // - Promo "first session" + extended size list + tattooage prices: /cons_remover
+  // ---------------------------------------------------------
+
+  const CONTACTS = {
+    msk: {
+      phone: '+7 499 110 16 66',
+      waPhone: '79652426485',
+      tg: 'https://t.me/etlaser_admin',
+      email: 'info@et-laser.ru'
+    },
+    spb: {
+      phone: '+7 (812) 565-77-95',
+      waPhone: '79652426485',
+      tg: 'https://t.me/etlaser_admin',
+      email: 'info@et-laser.ru'
+    }
+  };
+
+  const SIZES = [4, 15, 25, 50, 100, 125, 150, 200, 300, 350, 400, 500, 600];
+
+  const PRICE = {
+    msk: {
+      lutronic: {
+        // base ("small" points) from /price
+        tattoo_small_base: { 4: 4700, 15: 6200, 25: 7800, 50: 11800 },
+        // extended sizes + promo values from /cons_remover
+        tattoo_extended_base: { 100: 14300, 125: 17400, 150: 20000, 200: 20500, 300: 22000, 350: 25000, 400: 27000, 500: 33000, 600: 38000 },
+        tattoo_promo_first:  { 4: 3500, 15: 3500, 25: 3900, 50: 5900, 100: 7150, 125: 8700, 150: 10000, 200: 10250, 300: 11000, 350: 12500, 400: 13500, 500: 16500, 600: 19000 },
+        tattooage:           { base: 12300, promo_first: 4900 },
+        tattooage_eyelids:   { base: 16300, promo_first: 4900 }
+      },
+      picosure: {
+        // from /price
+        tattoo_small_base: { 4: 8500, 15: 11000, 25: 13000, 50: 17700 }
+      }
+    },
+    spb: {
+      lutronic: {
+        // from /spb/price
+        tattoo_small_base: { 4: 3500, 15: 4900, 25: 6500, 50: 10000 }
+      },
+      picosure: {
+        // not publicly separated on /spb/price (full list via form)
+        tattoo_small_base: null
+      }
+    }
+  };
+
+  const PACKAGE = {
+    single: { label: 'Разовая', count: 1 },
+    pack3:  { label: 'Курс 3',  count: 3 },
+    pack18: { label: 'Курс 18', count: 18 }
+  };
+
+  const GOAL = [
+    { name: 'Осветлить под cover-up', mult: 0.80 },
+    { name: 'Максимально осветлить', mult: 0.90 },
+    { name: 'Максимально удалить',   mult: 1.00 }
+  ];
+
+  const els = {
+    // city switch
+    cityMsk: document.getElementById('cityMsk'),
+    citySpb: document.getElementById('citySpb'),
+    city: document.getElementById('city'),
+
+    item: document.getElementById('item'),
+    size: document.getElementById('size'),
+    sizeHint: document.getElementById('sizeHint'),
+    area: document.getElementById('area'),
+    areaField: document.getElementById('areaField'),
+
+    laser: document.getElementById('laser'),
+    laserField: document.getElementById('laserField'),
+
+    promoField: document.getElementById('promoField'),
+    promoFirst: document.getElementById('promoFirst'),
+
+    package: document.getElementById('package'),
+    extraDiscount: document.getElementById('extraDiscount'),
+
+    // optional session calc
+    color: document.getElementById('color'),
+    density: document.getElementById('density'),
+    layering: document.getElementById('layering'),
+    skin: document.getElementById('skin'),
+    zone: document.getElementById('zone'),
+    age: document.getElementById('age'),
+    scars: document.getElementById('scars'),
+    goal: document.getElementById('goal'),
+    goalText: document.getElementById('goalText'),
+    tattooageSessionsNote: document.getElementById('tattooageSessionsNote'),
+
+    // outputs
+    perSession: document.getElementById('perSession'),
+    perSessionNote: document.getElementById('perSessionNote'),
+    packageTotal: document.getElementById('packageTotal'),
+    packageNote: document.getElementById('packageNote'),
+    sessions: document.getElementById('sessions'),
+    total: document.getElementById('total'),
+    totalNote: document.getElementById('totalNote'),
+    breakdown: document.getElementById('breakdown'),
+    complexityBadge: document.getElementById('complexityBadge'),
+    warnBox: document.getElementById('warnBox'),
+    statusText: document.getElementById('statusText'),
+
+    // lead
+    leadName: document.getElementById('leadName'),
+    leadPhone: document.getElementById('leadPhone'),
+    leadChannel: document.getElementById('leadChannel'),
+    leadPhoto: document.getElementById('leadPhoto'),
+    leadComment: document.getElementById('leadComment'),
+    leadNote: document.getElementById('leadNote'),
+    leadTarget: document.getElementById('leadTarget'),
+
+    // actions
+    copyLink: document.getElementById('copyLink'),
+    copyText: document.getElementById('copyText'),
+    sendLead: document.getElementById('sendLead'),
+    reset: document.getElementById('reset'),
+    cta: document.getElementById('cta'),
+    toggleModel: document.getElementById('toggleModel'),
+    modelBox: document.getElementById('modelBox')
+  };
+
+  function clamp(min, max, v){ return Math.max(min, Math.min(max, v)); }
+  function ceil(v){ return Math.ceil(v); }
+  function fmtMoney(n){
+    if(n === null || Number.isNaN(n)) return '—';
+    return new Intl.NumberFormat('ru-RU').format(Math.round(n)) + ' ₽';
+  }
+
+  function setCity(city){
+    els.city.value = city;
+    els.cityMsk.setAttribute('aria-pressed', city === 'msk' ? 'true' : 'false');
+    els.citySpb.setAttribute('aria-pressed', city === 'spb' ? 'true' : 'false');
+  }
+
+  function normalizeArea(){
+    // for tattooage we use a small "representative" area for the session estimator
+    const item = els.item.value;
+    if(item.startsWith('tattooage')) return 4;
+
+    if(els.size.value !== 'custom') return Number(els.size.value);
+
+    let a = Number(els.area.value || 25);
+    a = clamp(1, 800, a);
+
+    // map to nearest bigger bracket
+    const b = SIZES.find(s => a <= s);
+    return b ?? 600;
+  }
+
+  function canPrice(city, item, laser, bracket){
+    if(item === 'tattoo'){
+      if(city === 'spb'){
+        return bracket <= 50 && laser === 'lutronic';
+      }
+      if(city === 'msk'){
+        if(laser === 'picosure') return bracket <= 50;
+        if(laser === 'lutronic') return true; // small via /price, big via /cons_remover
+      }
+    }
+
+    // tattooage prices only configured for Moscow/Lutronic in public sources
+    if(item.startsWith('tattooage')){
+      return (city === 'msk' && laser === 'lutronic');
+    }
+
+    return false;
+  }
+
+  function basePrice(city, item, laser, bracket){
+    if(item.startsWith('tattooage')){
+      const key = item === 'tattooage_brows' ? 'tattooage' : 'tattooage_eyelids';
+      return PRICE.msk.lutronic[key].base;
+    }
+
+    if(city === 'spb'){
+      return PRICE.spb.lutronic.tattoo_small_base[bracket] ?? null;
+    }
+
+    // msk
+    if(laser === 'picosure'){
+      return PRICE.msk.picosure.tattoo_small_base[bracket] ?? null;
+    }
+
+    // msk + lutronic
+    if(bracket <= 50){
+      return PRICE.msk.lutronic.tattoo_small_base[bracket] ?? null;
+    }
+    return PRICE.msk.lutronic.tattoo_extended_base[bracket] ?? null;
+  }
+
+  function promoFirstPrice(city, item, laser, bracket){
+    if(!(city === 'msk' && laser === 'lutronic')) return null;
+
+    if(item.startsWith('tattooage')){
+      const key = item === 'tattooage_brows' ? 'tattooage' : 'tattooage_eyelids';
+      return PRICE.msk.lutronic[key].promo_first;
+    }
+
+    return PRICE.msk.lutronic.tattoo_promo_first[bracket] ?? null;
+  }
+
+  function getComplexity(){
+    const factors = [
+      { key: 'color',    label: 'Цвет',          mult: Number(els.color.value) },
+      { key: 'density',  label: 'Плотность',     mult: Number(els.density.value) },
+      { key: 'layering', label: 'Наслоение',     mult: Number(els.layering.value) },
+      { key: 'skin',     label: 'Фототип',       mult: Number(els.skin.value) },
+      { key: 'zone',     label: 'Зона',          mult: Number(els.zone.value) },
+      { key: 'age',      label: 'Возраст тату',  mult: Number(els.age.value) },
+      { key: 'scars',    label: 'Рубцы/фиброз',  mult: Number(els.scars.value) },
+    ];
+    const goalIdx = Number(els.goal.value);
+    const goal = GOAL[goalIdx];
+    const complexity = factors.reduce((acc, f) => acc * f.mult, 1);
+    return { factors, goalIdx, goal, complexity };
+  }
+
+  function estimateSessions(area){
+    const c = getComplexity();
+    els.goalText.textContent = c.goal.name;
+
+    const base = 2 + Math.sqrt(area) / 3.8;
+    const raw = base * c.complexity * c.goal.mult;
+    const mid = clamp(2, 18, ceil(raw));
+    const min = clamp(2, 18, Math.max(2, Math.round(mid * 0.85)));
+    const max = clamp(2, 18, Math.min(18, Math.round(mid * 1.20)));
+
+    return { min, mid, max, ...c };
+  }
+
+  function compute(){
+    const city = els.city.value;
+    const item = els.item.value;
+
+    // UI rules
+    const isTattoo = (item === 'tattoo');
+
+    els.laserField.style.display = isTattoo ? 'block' : 'none';
+    if(!isTattoo) els.laser.value = 'lutronic';
+
+    els.areaField.style.display = (isTattoo && els.size.value === 'custom') ? 'block' : 'none';
+
+    // promo checkbox only makes sense when we have promo table
+    const promoSupported = (city === 'msk' && els.laser.value === 'lutronic');
+    els.promoField.style.display = promoSupported ? 'block' : 'none';
+    if(!promoSupported) els.promoFirst.checked = false;
+
+    // SPb: only 4/15/25/50 visible on /spb/price; hide other options
+    for(const opt of els.size.querySelectorAll('option')){
+      if(opt.value === 'custom') continue;
+      const v = Number(opt.value);
+      opt.disabled = (city === 'spb' && v > 50);
+      opt.hidden = (city === 'spb' && v > 50);
+    }
+    if(city === 'spb' && els.size.value !== 'custom' && Number(els.size.value) > 50){
+      els.size.value = '25';
+    }
+
+    // tattooage: lock size to 4 (we still keep select as-is, but used only for messaging)
+    if(!isTattoo){
+      els.size.disabled = true;
+      els.sizeHint.textContent = 'Для татуажа цена задаётся отдельной строкой, не по площади.';
+    }else{
+      els.size.disabled = false;
+      els.sizeHint.textContent = 'Если выбрали «Свой размер» — возьмём ближайший больший «до … см²». (В проде — точная таблица.)';
+    }
+
+    // compute bracket area
+    const bracket = normalizeArea();
+
+    // pricing
+    const laser = els.laser.value;
+    const pkg = PACKAGE[els.package.value];
+    const extraDiscount = clamp(0, 60, Number(els.extraDiscount.value || 0)) / 100;
+
+    let unitBase = null;
+    let unitAfter = null;
+    let firstPromo = null;
+
+    if(canPrice(city, item, laser, bracket)){
+      unitBase = basePrice(city, item, laser, bracket);
+      unitAfter = unitBase * (1 - extraDiscount);
+
+      if(els.promoFirst.checked){
+        const promo = promoFirstPrice(city, item, laser, bracket);
+        if(promo !== null){
+          firstPromo = promo * (1 - extraDiscount);
+        }
+      }
+    }
+
+    // package total (promo applies only to the first procedure)
+    const packageTotal = (unitAfter === null)
+      ? null
+      : ( (firstPromo !== null ? firstPromo : unitAfter) + unitAfter * Math.max(0, pkg.count - 1) );
+
+    // sessions estimation (uses bracket area; for custom we use bracket)
+    els.tattooageSessionsNote.style.display = item.startsWith('tattooage') ? 'block' : 'none';
+    const ses = estimateSessions(bracket);
+
+    // total cost range (promo applies only to first procedure)
+    function totalForSessions(k){
+      if(unitAfter === null) return null;
+      if(k <= 0) return 0;
+      return (firstPromo !== null ? firstPromo : unitAfter) + unitAfter * Math.max(0, k - 1);
+    }
+
+    const totalMin = totalForSessions(ses.min);
+    const totalMax = totalForSessions(ses.max);
+
+    // render KPIs
+    if(unitAfter === null){
+      els.perSession.textContent = '—';
+      els.perSessionNote.textContent = 'Цена по выбранным параметрам не найдена в открытом прайсе';
+      els.packageTotal.textContent = '—';
+      els.packageNote.textContent = `${pkg.count} процедур`;
+      els.total.textContent = '—';
+      els.totalNote.textContent = 'Уточним на консультации';
+    }else{
+      els.perSession.textContent = fmtMoney(unitAfter);
+      if(firstPromo !== null){
+        els.perSessionNote.textContent = `1-й сеанс: ${fmtMoney(firstPromo)} • далее: ${fmtMoney(unitAfter)} • скидка ${Math.round(extraDiscount*100)}%`;
+      }else{
+        els.perSessionNote.textContent = `скидка ${Math.round(extraDiscount*100)}%`;
+      }
+
+      els.packageTotal.textContent = fmtMoney(packageTotal);
+      els.packageNote.textContent = `${pkg.count} процедур`;
+
+      els.total.textContent = fmtMoney(totalMin) + ' — ' + fmtMoney(totalMax);
+      els.totalNote.textContent = `при ${ses.min}–${ses.max} сеансах (оценка)`;
+    }
+
+    els.sessions.textContent = `${ses.min}–${ses.max}`;
+    els.complexityBadge.textContent = 'Complexity × ' + ses.complexity.toFixed(2);
+
+    // warnings
+    const warns = [];
+    if(item.startsWith('tattooage') && city !== 'msk'){
+      warns.push('Татуаж: на сайте СПб полный прайс выдаётся через форму; в прототипе для СПб татуаж помечаем как «уточним на консультации».');
+    }
+    if(isTattoo && city === 'spb' && els.size.value === 'custom'){
+      warns.push('СПб: в открытом прайсе есть только размеры до 50 см². Для большего размера — «уточним на консультации».');
+    }
+    if(city === 'msk' && laser === 'picosure' && bracket > 50){
+      warns.push('PicoSure: в открытом прайсе Москвы показаны малые размеры (до 50 см²). Для большего размера — «уточним на консультации».');
+    }
+    if(pkg.count < ses.min){
+      warns.push(`Выбранный формат на ${pkg.count} процедур меньше оценки ${ses.min}–${ses.max}.`);
+    }
+    els.warnBox.style.display = warns.length ? 'block' : 'none';
+    els.warnBox.textContent = warns.join(' ');
+
+    // breakdown table
+    els.breakdown.innerHTML = '';
+    const itemLabel = (
+      item === 'tattoo' ? 'Татуировка' :
+      item === 'tattooage_brows' ? 'Татуаж (брови/губы/прочее)' :
+      'Татуаж (веки)'
+    );
+
+    const rows = [
+      ['Город', city === 'msk' ? 'Москва' : 'Санкт‑Петербург'],
+      ['Что удаляем', itemLabel],
+      ['Лазер', (item.startsWith('tattooage')) ? 'Lutronic (фикс.)' : (laser === 'lutronic' ? 'Lutronic Spectra XT' : 'PicoSure')],
+      ['Категория', isTattoo ? `до ${bracket} см²` : 'по прайсу татуажа'],
+      ['Кол-во процедур (формат)', `${pkg.label} (${pkg.count})`],
+      ['Скидка/акция', `${Math.round(extraDiscount*100)}%`],
+      ['Акция на 1‑й сеанс', firstPromo !== null ? 'да' : 'нет'],
+      ['Complexity', `× ${ses.complexity.toFixed(2)}`],
+      ['Цель', `${ses.goal.name} (×${ses.goal.mult.toFixed(2)})`]
+    ];
+
+    for(const [k,v] of rows){
+      const tr = document.createElement('tr');
+      const td1 = document.createElement('td'); td1.textContent = k;
+      const td2 = document.createElement('td'); td2.textContent = v;
+      tr.appendChild(td1); tr.appendChild(td2);
+      els.breakdown.appendChild(tr);
+    }
+
+    // update lead target label
+    els.leadTarget.textContent = ({ wa: 'WhatsApp', tg: 'Telegram', mail: 'Email' })[els.leadChannel.value];
+
+    els.statusText.textContent = 'Рассчитано';
+    setTimeout(()=> els.statusText.textContent = 'Готов к расчёту', 900);
+  }
+
+  function buildSummaryText(){
+    const city = els.city.value;
+    const item = els.item.value;
+    const laser = els.laser.value;
+    const bracket = normalizeArea();
+    const pkg = PACKAGE[els.package.value];
+    const extraDiscount = clamp(0, 60, Number(els.extraDiscount.value || 0));
+
+    const itemLabel = (
+      item === 'tattoo' ? 'Татуировка' :
+      item === 'tattooage_brows' ? 'Татуаж (брови/губы/прочее)' :
+      'Татуаж (веки)'
+    );
+
+    const unit = els.perSession.textContent;
+    const unitNote = els.perSessionNote.textContent;
+    const pack = els.packageTotal.textContent;
+    const sessions = els.sessions.textContent;
+    const total = els.total.textContent;
+
+    const hasPhoto = (els.leadPhoto.files && els.leadPhoto.files.length > 0);
+
+    const lines = [
+      'Здравствуйте! Хочу консультацию по удалению.',
+      `Город: ${city === 'msk' ? 'Москва' : 'Санкт‑Петербург'}`,
+      `Что удаляем: ${itemLabel}`,
+      `Размер/категория: ${item === 'tattoo' ? `до ${bracket} см²` : 'по прайсу татуажа'}`,
+      `Лазер: ${item.startsWith('tattooage') ? 'Lutronic' : (laser === 'lutronic' ? 'Lutronic' : 'PicoSure')}`,
+      `Формат: ${pkg.label} (${pkg.count})`,
+      `Оценка: 1 сеанс ≈ ${unit} (${unitNote})`,
+      `Формат-стоимость: ${pack}`,
+      `Оценка сеансов: ${sessions}`,
+      `Оценка полной стоимости: ${total}`,
+      `Скидка/акция (если применимо): ${extraDiscount}%`,
+      hasPhoto ? 'Фото тату: есть (прикреплю в чате).' : 'Фото тату: нет.',
+    ];
+
+    const name = (els.leadName.value || '').trim();
+    const phone = (els.leadPhone.value || '').trim();
+    const comment = (els.leadComment.value || '').trim();
+
+    if(name) lines.push(`Имя: ${name}`);
+    if(phone) lines.push(`Телефон: ${phone}`);
+    if(comment) lines.push(`Комментарий: ${comment}`);
+
+    return lines.join('\n');
+  }
+
+  function updateUrl(replace=false){
+    const p = new URLSearchParams();
+    p.set('city', els.city.value);
+    p.set('item', els.item.value);
+    p.set('laser', els.laser.value);
+    p.set('size', els.size.value);
+    p.set('area', String(els.area.value));
+    p.set('pkg', els.package.value);
+    p.set('disc', String(els.extraDiscount.value));
+    p.set('promo', els.promoFirst.checked ? '1' : '0');
+
+    // session params
+    p.set('c', els.color.value);
+    p.set('den', els.density.value);
+    p.set('lay', els.layering.value);
+    p.set('skin', els.skin.value);
+    p.set('zone', els.zone.value);
+    p.set('age', els.age.value);
+    p.set('sc', els.scars.value);
+    p.set('g', els.goal.value);
+
+    const newUrl = window.location.pathname + '?' + p.toString();
+    if(replace) window.history.replaceState({}, '', newUrl);
+    else window.history.pushState({}, '', newUrl);
+  }
+
+  function loadFromUrl(){
+    const p = new URLSearchParams(window.location.search);
+
+    if(p.has('city')) setCity(p.get('city'));
+    if(p.has('item')) els.item.value = p.get('item');
+    if(p.has('laser')) els.laser.value = p.get('laser');
+    if(p.has('size')) els.size.value = p.get('size');
+    if(p.has('area')) els.area.value = p.get('area');
+    if(p.has('pkg')) els.package.value = p.get('pkg');
+    if(p.has('disc')) els.extraDiscount.value = p.get('disc');
+    if(p.has('promo')) els.promoFirst.checked = (p.get('promo') === '1');
+
+    if(p.has('c')) els.color.value = p.get('c');
+    if(p.has('den')) els.density.value = p.get('den');
+    if(p.has('lay')) els.layering.value = p.get('lay');
+    if(p.has('skin')) els.skin.value = p.get('skin');
+    if(p.has('zone')) els.zone.value = p.get('zone');
+    if(p.has('age')) els.age.value = p.get('age');
+    if(p.has('sc')) els.scars.value = p.get('sc');
+    if(p.has('g')) els.goal.value = p.get('g');
+
+    compute();
+  }
+
+  async function copyLink(){
+    updateUrl(true);
+    const url = window.location.href;
+    try{
+      await navigator.clipboard.writeText(url);
+      els.copyLink.textContent = 'Ссылка скопирована ✅';
+    }catch(e){
+      prompt('Скопируйте ссылку:', url);
+    }finally{
+      setTimeout(()=> els.copyLink.textContent = 'Скопировать ссылку с параметрами', 1300);
+    }
+  }
+
+  async function copyText(){
+    const txt = buildSummaryText();
+    try{
+      await navigator.clipboard.writeText(txt);
+      els.copyText.textContent = 'Скопировано ✅';
+    }catch(e){
+      prompt('Скопируйте текст:', txt);
+    }finally{
+      setTimeout(()=> els.copyText.textContent = 'Скопировать текст', 1300);
+    }
+  }
+
+  function sendLead(){
+    const city = els.city.value;
+    const c = CONTACTS[city];
+    const channel = els.leadChannel.value;
+    const txt = buildSummaryText();
+
+    els.leadNote.style.display = 'block';
+
+    if(channel === 'wa'){
+      const url = `https://wa.me/${c.waPhone}?text=${encodeURIComponent(txt)}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+      els.leadNote.textContent = `Открываю WhatsApp на номер ${c.waPhone}. Если не открылось — скопируйте текст и отправьте вручную.`;
+      return;
+    }
+
+    if(channel === 'tg'){
+      // Telegram не поддерживает надёжный префилл текста в личку → копируем и открываем чат
+      navigator.clipboard.writeText(txt).catch(()=>{});
+      window.open(c.tg, '_blank', 'noopener,noreferrer');
+      els.leadNote.textContent = `Открываю Telegram (${c.tg}). Текст скопирован — вставьте его в чат.`;
+      return;
+    }
+
+    // mail
+    const subj = 'Запрос консультации по удалению тату (калькулятор)';
+    const mailto = `mailto:${c.email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(txt)}`;
+    window.location.href = mailto;
+    els.leadNote.textContent = `Открываю письмо на ${c.email}.`;
+  }
+
+  function reset(){
+    setCity('msk');
+    els.item.value = 'tattoo';
+    els.size.value = '25';
+    els.area.value = '25';
+    els.laser.value = 'lutronic';
+    els.promoFirst.checked = false;
+    els.package.value = 'single';
+    els.extraDiscount.value = '0';
+
+    els.color.value = '1.00';
+    els.density.value = '1.00';
+    els.layering.value = '1.00';
+    els.skin.value = '1.00';
+    els.zone.value = '1.00';
+    els.age.value = '1.15';
+    els.scars.value = '1.00';
+    els.goal.value = '2';
+
+    els.leadName.value = '';
+    els.leadPhone.value = '';
+    els.leadChannel.value = 'wa';
+    els.leadComment.value = '';
+    els.leadPhoto.value = '';
+    els.leadNote.style.display = 'none';
+
+    compute();
+    updateUrl(true);
+  }
+
+  // City switch handlers
+  els.cityMsk.addEventListener('click', ()=>{ setCity('msk'); compute(); updateUrl(true); });
+  els.citySpb.addEventListener('click', ()=>{ setCity('spb'); compute(); updateUrl(true); });
+
+  // Events
+  ['item','size','area','laser','promoFirst','package','extraDiscount','color','density','layering','skin','zone','age','scars','goal','leadChannel'].forEach(id=>{
+    const el = els[id];
+    el.addEventListener('input', ()=>{ compute(); updateUrl(true); });
+    el.addEventListener('change', ()=>{ compute(); updateUrl(true); });
+  });
+
+  els.copyLink.addEventListener('click', copyLink);
+  els.copyText.addEventListener('click', copyText);
+  els.sendLead.addEventListener('click', sendLead);
+  els.reset.addEventListener('click', reset);
+
+  els.cta.addEventListener('click', ()=>{ window.open('https://et-laser.ru', '_blank', 'noopener,noreferrer'); });
+
+  els.toggleModel.addEventListener('click', ()=>{
+    els.modelBox.style.display = (els.modelBox.style.display === 'none') ? 'block' : 'none';
+  });
+
+  // init
+  setCity('msk');
+  loadFromUrl();
+  updateUrl(true);
+</script>
+</body>
+</html>
